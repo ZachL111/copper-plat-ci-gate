@@ -1,68 +1,40 @@
 # copper-plat-ci-gate
 
-`copper-plat-ci-gate` treats platform engineering as a local verification problem. The Java implementation is intentionally narrow, but the fixtures and notes make the behavior explicit.
+`copper-plat-ci-gate` explores platform engineering with a small Java codebase and local fixtures. The technical goal is to package a Java local lab for ci analysis with seeded input scenarios, deterministic summary checks, and documented operating limits.
 
-## Copper Plat Ci Gate Checkpoints
+## Why I Keep It Small
 
-Treat the compact fixture as the contract and the extended examples as a scratchpad. The code should stay boring enough that a change in behavior is obvious from the test output.
+The point is to make a small domain rule concrete enough that a reader can change it and immediately see what broke.
 
-## What This Is For
+## Copper Plat Ci Gate Review Notes
 
-This project keeps the domain idea close to the tests. That makes it useful as a reference implementation, a small experiment, or a starting point for a more specialized tool.
+The first comparison I would make is `rollout width` against `route drift` because it shows where the rule is most opinionated.
 
-## Architecture Notes
+## Included Behavior
 
-The core is a scoring model over demand, capacity, latency, risk, and weight. That keeps service shape, route policy, and rollout constraints in one explicit decision path. The threshold is 157, with risk penalty 7, latency penalty 3, and weight bonus 3. The Java implementation uses a compact package layout and direct assertion checks.
+- `fixtures/domain_review.csv` adds cases for rollout width and quota pressure.
+- `metadata/domain-review.json` records the same cases in structured form.
+- `config/review-profile.json` captures the read order and the two review questions.
+- `examples/copper-plat-ci-walkthrough.md` walks through the case spread.
+- The Java code includes a review path for `rollout width` and `route drift`.
+- `docs/field-notes.md` explains the strongest and weakest cases.
 
-## Case Study
+## Internal Model
 
-`examples/extended_cases.csv` adds six named cases. I kept the names plain so failures are easy to read in a terminal: baseline, pressure, surge, degraded, recovery, and boundary.
+The fixture data drives the tests. The code stays thin, while `metadata/domain-review.json` and `config/review-profile.json` explain what each case is meant to protect.
 
-## Useful Pieces
+The Java implementation avoids hidden state so fixture changes are easy to reason about.
 
-- Uses fixture data to keep route policy changes visible in code review.
-- Includes extended examples for rollout constraints, including `surge` and `degraded`.
-- Documents environment checks tradeoffs in `docs/operations.md`.
-- Runs locally with a single verification command and no external credentials.
-- Stores project constants and verification metadata in `metadata/project.json`.
-
-## Tooling
-
-Use a normal shell with Java available on `PATH`. The verifier is written as a PowerShell script because the portfolio was assembled on Windows.
-
-## Quality Gate
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/audit.ps1
-```
-
-The audit command checks repository structure and README constraints before it delegates to the verifier.
-
-## Project Layout
-
-- `src`: primary implementation
-- `tests`: verification harness
-- `fixtures`: compact golden scenarios
-- `examples`: expanded scenario set
-- `metadata`: project constants and verification metadata
-- `docs`: operations and extension notes
-- `scripts`: local verification and audit commands
-
-## Scope
-
-The fixture set is deliberately small. That keeps the review surface clear, but it also means the model should not be treated as a complete domain simulator.
-
-## Expansion Ideas
-
-- Add a short report command that prints the score breakdown for a single scenario.
-- Add malformed input fixtures so the failure path is as visible as the happy path.
-- Split the scoring constants into a typed configuration object and validate it before use.
-- Add one more platform engineering fixture that focuses on a malformed or borderline input.
-
-## Local Workflow
+## Try It Locally
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-This runs the language-level build or test path against the compact fixture set.
+## Validation
+
+That command is also the regression path. It verifies the domain cases and catches mismatches between the CSV, metadata, and code.
+
+## Scope
+
+This remains a local project with deterministic fixtures. It does not depend on credentials, hosted services, or live data. Future work should add richer malformed inputs before widening the public API.
